@@ -47,7 +47,6 @@
               <span class="contact__label">Telegram</span>
               <span class="contact__value">@levushkin_art</span>
             </a>
-            <a class="contact" href="/admin/">Админка</a>
           </div>
         </div>
       </nav>
@@ -454,39 +453,56 @@
         });
       })();
 
-      // Phone input: add "+" on focus, format as +X(XXX)-XXX-XX-XX
+      // Phone input: add "+" on focus, format as +7(XXX)-XXX-XX-XX (Russian)
       (() => {
         const phoneInput = document.getElementById("order-phone");
         if (!phoneInput) return;
 
+        function normalizeRussianDigits(digits) {
+          if (digits.length === 10 && (digits[0] === "8" || digits[0] === "9")) return "7" + digits;
+          if (digits.length === 11 && digits[0] === "8") return "7" + digits.slice(1);
+          return digits;
+        }
+
         function formatPhone(value) {
-          const digits = value.replace(/\D/g, "");
-          const limited = digits.slice(0, 11);
-          if (limited.length === 0) return "";
-          if (limited.length <= 1) return "+" + limited;
-          if (limited.length <= 4) return "+" + limited[0] + "(" + limited.slice(1) + ")";
-          if (limited.length <= 7) return "+" + limited[0] + "(" + limited.slice(1, 4) + ")-" + limited.slice(4);
-          if (limited.length <= 9) return "+" + limited[0] + "(" + limited.slice(1, 4) + ")-" + limited.slice(4, 7) + "-" + limited.slice(7);
-          return "+" + limited[0] + "(" + limited.slice(1, 4) + ")-" + limited.slice(4, 7) + "-" + limited.slice(7, 9) + "-" + limited.slice(9, 11);
+          let digits = (value || "").replace(/\D/g, "");
+          digits = normalizeRussianDigits(digits).slice(0, 11);
+          if (digits.length === 0) return "";
+          if (digits.length <= 1) return "+" + digits;
+          if (digits.length <= 4) return "+" + digits[0] + "(" + digits.slice(1) + ")";
+          if (digits.length <= 7) return "+" + digits[0] + "(" + digits.slice(1, 4) + ")-" + digits.slice(4);
+          if (digits.length <= 9) return "+" + digits[0] + "(" + digits.slice(1, 4) + ")-" + digits.slice(4, 7) + "-" + digits.slice(7);
+          return "+" + digits[0] + "(" + digits.slice(1, 4) + ")-" + digits.slice(4, 7) + "-" + digits.slice(7, 9) + "-" + digits.slice(9, 11);
+        }
+
+        function positionAfterDigits(formatted, digitCount) {
+          let count = 0;
+          for (let i = 0; i < formatted.length; i++) {
+            if (/\d/.test(formatted[i])) count++;
+            if (count >= digitCount) return i + 1;
+          }
+          return formatted.length;
         }
 
         phoneInput.addEventListener("focus", () => {
-          const v = phoneInput.value;
-          if (!v.startsWith("+")) {
-            phoneInput.value = v ? "+" + v.replace(/\D/g, "").slice(0, 11) : "+";
-            if (phoneInput.value.length > 1) phoneInput.value = formatPhone(phoneInput.value);
+          const v = (phoneInput.value || "").trim();
+          const digits = v.replace(/\D/g, "").slice(0, 11);
+          if (digits.length === 0) {
+            phoneInput.value = "+7";
+            phoneInput.setSelectionRange(2, 2);
+          } else if (!v.startsWith("+")) {
+            const normalized = normalizeRussianDigits(digits);
+            phoneInput.value = formatPhone(normalized);
           }
         });
 
         phoneInput.addEventListener("input", () => {
           const start = phoneInput.selectionStart;
           const oldVal = phoneInput.value;
+          const digitsBeforeCursor = (oldVal.slice(0, start).match(/\d/g) || []).length;
           const formatted = formatPhone(oldVal);
           phoneInput.value = formatted;
-          const newLen = formatted.length;
-          const oldLen = oldVal.length;
-          let newStart = Math.min(start, newLen);
-          if (newLen > oldLen && formatted[newStart] && /\D/.test(formatted[newStart])) newStart++;
+          const newStart = positionAfterDigits(formatted, digitsBeforeCursor);
           phoneInput.setSelectionRange(newStart, newStart);
         });
       })();

@@ -48,7 +48,6 @@
               <span class="contact__label">Telegram</span>
               <span class="contact__value">@levushkin_art</span>
             </a>
-            <a class="contact" href="{% url 'admin:index' %}">Админка</a>
           </div>
         </div>
       </nav>
@@ -101,7 +100,8 @@
           </div>
           <div class="order-form__row">
             <label class="order-form__label" for="order-phone">Мобильный телефон <span class="order-form__required" aria-hidden="true">*</span></label>
-            <input class="order-form__input" id="order-phone" name="phone" type="tel" autocomplete="tel" inputmode="numeric" placeholder="+7(916)-000-00-00" required />
+            <input class="order-form__input" id="order-phone" name="phone" type="tel" autocomplete="tel" inputmode="numeric" placeholder="+7(916)-000-00-00" required aria-describedby="order-phone-error" aria-invalid="false" />
+            <span class="order-form__error" id="order-phone-error" role="alert" aria-live="polite" hidden></span>
           </div>
           <div class="order-form__row">
             <label class="order-form__label" for="order-email">Электронная почта <span class="order-form__required" aria-hidden="true">*</span></label>
@@ -301,9 +301,14 @@
           document.body.style.overflow = "";
         }
 
+        const phoneInput = document.getElementById("order-phone");
+        const phoneError = document.getElementById("order-phone-error");
+
         function onSubmitSuccess() {
           closeDialog();
           form.reset();
+          if (phoneError) phoneError.hidden = true;
+          if (phoneInput) phoneInput.setCustomValidity("");
           if (emailError) emailError.hidden = true;
           if (emailInput) emailInput.setCustomValidity("");
           const msg = "Здравствуйте! Хочу оформить заказ на картину.";
@@ -328,7 +333,48 @@
           document.body.style.overflow = "";
         });
 
-        // Email validation with nice error message
+        const REQUIRED_EMPTY_MESSAGES = {
+          firstname: "Введите имя",
+          lastname: "Введите фамилию",
+          phone: "Введите номер телефона",
+          email: "Введите адрес электронной почты",
+          region: "Выберите регион",
+          city: "Введите город",
+          address: "Введите адрес доставки",
+        };
+
+        function setRequiredFieldMessages() {
+          form.querySelectorAll("[required]").forEach((el) => {
+            const name = el.name;
+            const isEmpty = el.tagName === "SELECT" ? el.value === "" : (el.value || "").trim() === "";
+            if (name && REQUIRED_EMPTY_MESSAGES[name]) {
+              if (isEmpty) {
+                el.setCustomValidity(REQUIRED_EMPTY_MESSAGES[name]);
+                el.setAttribute("aria-invalid", "true");
+              } else {
+                el.setCustomValidity("");
+                el.setAttribute("aria-invalid", "false");
+              }
+            }
+          });
+        }
+
+        form.addEventListener("input", (e) => {
+          const el = e.target;
+          if (el && el.hasAttribute && el.hasAttribute("required")) {
+            el.setCustomValidity("");
+            el.setAttribute("aria-invalid", "false");
+          }
+        });
+        form.addEventListener("change", (e) => {
+          const el = e.target;
+          if (el && el.hasAttribute && el.hasAttribute("required")) {
+            el.setCustomValidity("");
+            el.setAttribute("aria-invalid", "false");
+          }
+        });
+
+        // Phone validation
         const emailInput = document.getElementById("order-email");
         const emailError = document.getElementById("order-email-error");
         const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -364,8 +410,43 @@
           });
         }
 
+        const PHONE_ERROR_MSG = "Введите корректный номер телефона (например, +7(916)-000-00-00)";
+
+        function validatePhoneField() {
+          if (!phoneInput || !phoneError) return;
+          const digits = (phoneInput.value || "").replace(/\D/g, "");
+          const valid = digits.length === 11;
+          const empty = phoneInput.value.trim() === "";
+          if (!empty && !valid) {
+            phoneInput.setCustomValidity(PHONE_ERROR_MSG);
+            phoneError.textContent = PHONE_ERROR_MSG;
+            phoneError.hidden = false;
+            phoneInput.setAttribute("aria-invalid", "true");
+          } else if (valid) {
+            phoneInput.setCustomValidity("");
+            phoneError.textContent = "";
+            phoneError.hidden = true;
+            phoneInput.setAttribute("aria-invalid", "false");
+          }
+        }
+
+        if (phoneInput && phoneError) {
+          phoneInput.addEventListener("blur", validatePhoneField);
+          phoneInput.addEventListener("input", () => {
+            const digits = (phoneInput.value || "").replace(/\D/g, "");
+            if (digits.length === 11 || digits.length === 0) {
+              phoneInput.setCustomValidity("");
+              phoneError.textContent = "";
+              phoneError.hidden = true;
+              phoneInput.setAttribute("aria-invalid", "false");
+            }
+          });
+        }
+
         form.addEventListener("submit", (e) => {
           e.preventDefault();
+          setRequiredFieldMessages();
+          validatePhoneField();
           validateEmailField();
           if (!form.checkValidity()) {
             form.reportValidity();
@@ -419,39 +500,56 @@
         });
       })();
 
-      // Phone input: add "+" on focus, format as +X(XXX)-XXX-XX-XX
+      // Phone input: add "+" on focus, format as +7(XXX)-XXX-XX-XX (Russian)
       (() => {
         const phoneInput = document.getElementById("order-phone");
         if (!phoneInput) return;
 
+        function normalizeRussianDigits(digits) {
+          if (digits.length === 10 && (digits[0] === "8" || digits[0] === "9")) return "7" + digits;
+          if (digits.length === 11 && digits[0] === "8") return "7" + digits.slice(1);
+          return digits;
+        }
+
         function formatPhone(value) {
-          const digits = value.replace(/\D/g, "");
-          const limited = digits.slice(0, 11);
-          if (limited.length === 0) return "";
-          if (limited.length <= 1) return "+" + limited;
-          if (limited.length <= 4) return "+" + limited[0] + "(" + limited.slice(1) + ")";
-          if (limited.length <= 7) return "+" + limited[0] + "(" + limited.slice(1, 4) + ")-" + limited.slice(4);
-          if (limited.length <= 9) return "+" + limited[0] + "(" + limited.slice(1, 4) + ")-" + limited.slice(4, 7) + "-" + limited.slice(7);
-          return "+" + limited[0] + "(" + limited.slice(1, 4) + ")-" + limited.slice(4, 7) + "-" + limited.slice(7, 9) + "-" + limited.slice(9, 11);
+          let digits = (value || "").replace(/\D/g, "");
+          digits = normalizeRussianDigits(digits).slice(0, 11);
+          if (digits.length === 0) return "";
+          if (digits.length <= 1) return "+" + digits;
+          if (digits.length <= 4) return "+" + digits[0] + "(" + digits.slice(1) + ")";
+          if (digits.length <= 7) return "+" + digits[0] + "(" + digits.slice(1, 4) + ")-" + digits.slice(4);
+          if (digits.length <= 9) return "+" + digits[0] + "(" + digits.slice(1, 4) + ")-" + digits.slice(4, 7) + "-" + digits.slice(7);
+          return "+" + digits[0] + "(" + digits.slice(1, 4) + ")-" + digits.slice(4, 7) + "-" + digits.slice(7, 9) + "-" + digits.slice(9, 11);
+        }
+
+        function positionAfterDigits(formatted, digitCount) {
+          let count = 0;
+          for (let i = 0; i < formatted.length; i++) {
+            if (/\d/.test(formatted[i])) count++;
+            if (count >= digitCount) return i + 1;
+          }
+          return formatted.length;
         }
 
         phoneInput.addEventListener("focus", () => {
-          const v = phoneInput.value;
-          if (!v.startsWith("+")) {
-            phoneInput.value = v ? "+" + v.replace(/\D/g, "").slice(0, 11) : "+";
-            if (phoneInput.value.length > 1) phoneInput.value = formatPhone(phoneInput.value);
+          const v = (phoneInput.value || "").trim();
+          const digits = v.replace(/\D/g, "").slice(0, 11);
+          if (digits.length === 0) {
+            phoneInput.value = "+7";
+            phoneInput.setSelectionRange(2, 2);
+          } else if (!v.startsWith("+")) {
+            const normalized = normalizeRussianDigits(digits);
+            phoneInput.value = formatPhone(normalized);
           }
         });
 
         phoneInput.addEventListener("input", () => {
           const start = phoneInput.selectionStart;
           const oldVal = phoneInput.value;
+          const digitsBeforeCursor = (oldVal.slice(0, start).match(/\d/g) || []).length;
           const formatted = formatPhone(oldVal);
           phoneInput.value = formatted;
-          const newLen = formatted.length;
-          const oldLen = oldVal.length;
-          let newStart = Math.min(start, newLen);
-          if (newLen > oldLen && formatted[newStart] && /\D/.test(formatted[newStart])) newStart++;
+          const newStart = positionAfterDigits(formatted, digitsBeforeCursor);
           phoneInput.setSelectionRange(newStart, newStart);
         });
       })();
