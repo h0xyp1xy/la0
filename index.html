@@ -40,13 +40,14 @@
             </a>
             <a
               class="contact"
-              href="https://t.me/levushkin"
+              href="https://t.me/levushkin_art"
               target="_blank"
               rel="noreferrer"
             >
               <span class="contact__label">Telegram</span>
               <span class="contact__value">@levushkin_art</span>
             </a>
+            <a class="contact" href="/admin/">Админка</a>
           </div>
         </div>
       </nav>
@@ -215,6 +216,10 @@
     </dialog>
 
     <footer class="site-footer">
+      <nav class="footer-links">
+        <a href="#" target="_blank" rel="noopener noreferrer">Договор-оферта</a>
+        <a href="#" target="_blank" rel="noopener noreferrer">Политика конфиденциальности</a>
+      </nav>
       <small class="copyright">© Лёвушкин <span id="year">2026</span></small>
     </footer>
 
@@ -431,7 +436,7 @@
           if (emailError) emailError.hidden = true;
           if (emailInput) emailInput.setCustomValidity("");
           const msg = "Здравствуйте! Хочу оформить заказ на картину.";
-          window.open("https://t.me/levushkin?text=" + encodeURIComponent(msg), "_blank", "noopener,noreferrer");
+          window.open("https://t.me/levushkin_art?text=" + encodeURIComponent(msg), "_blank", "noopener,noreferrer");
         }
 
         form.addEventListener("submit", (e) => {

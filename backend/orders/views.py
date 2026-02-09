@@ -1,5 +1,5 @@
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -8,9 +8,18 @@ from django.views.generic import TemplateView
 from .models import ContactSubmission
 
 
+def redirect_404_to_home(request, exception=None, path=None):
+    """Redirect all 404 / unknown paths to the home page."""
+    return HttpResponseRedirect("/")
+
+
 @method_decorator(ensure_csrf_cookie, name="get")
 class HomeView(TemplateView):
     template_name = "orders/index.html"
+
+
+class Ehawp5View(TemplateView):
+    template_name = "orders/ehawp5.html"
 
 
 @require_http_methods(["POST"])
