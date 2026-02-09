@@ -1,0 +1,455 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Левушкин — Картина на продажу</title>
+    <meta
+      name="description"
+      content="Левушкин — продажа картины. Название, описание и цена."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bad+Script&family=Manrope:wght@400;600;700&family=Rubik+Mono+One&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Перейти к содержимому</a>
+
+    <header class="site-header">
+      <nav class="bar" aria-label="Верхняя навигация">
+        <div class="bar__inner">
+          <a class="logo" href="./" aria-label="Левушкин — на главную">
+            <img
+              class="logo__img"
+              src="{% static 'assets/logo.jpg' %}"
+              alt="Левушкин"
+              loading="eager"
+              decoding="async"
+            />
+          </a>
+
+          <div class="contacts" aria-label="Контакты">
+            <a class="contact" href="tel:+79160411945">
+              <span class="contact__label">Телефон</span>
+              <span class="contact__value">+7(916)-041-19-45</span>
+            </a>
+            <a
+              class="contact"
+              href="https://t.me/levushkin"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span class="contact__label">Telegram</span>
+              <span class="contact__value">@levushkin_art</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" class="main">
+      <section class="product" aria-label="Картина">
+        <figure class="product__figure">
+          <img
+            class="product__image"
+            src="{% static 'assets/картина.jpg' %}"
+            alt="Картина «Мечты воплощаемые с нуля»"
+            width="900"
+            height="900"
+          />
+        </figure>
+
+        <div class="product__info">
+          <h1 class="product__title">Мечты воплощаемые с нуля</h1>
+          <p class="product__description">
+            Каждый может воплотить любую мечту
+            <br />
+            Главное - чтобы было желание
+          </p>
+          <p class="product__price" aria-label="Цена">
+            <span class="product__price-label">Цена</span>
+            <span class="product__price-value">1 000 000 ₽</span>
+          </p>
+          <button type="button" class="buy-button" id="open-order-form" aria-haspopup="dialog" aria-expanded="false">
+            Купить
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="order-dialog" class="order-dialog" aria-labelledby="order-dialog-title" aria-modal="true">
+      <div class="order-dialog__backdrop"></div>
+      <div class="order-dialog__panel">
+        <button type="button" class="order-dialog__close" id="close-order-form" aria-label="Закрыть форму">×</button>
+        <h2 id="order-dialog-title" class="order-dialog__title">Оформление заказа</h2>
+        <form class="order-form" id="order-form" novalidate>
+          {% csrf_token %}
+          <div class="order-form__row">
+            <label class="order-form__label" for="order-firstname">Имя <span class="order-form__required" aria-hidden="true">*</span></label>
+            <input class="order-form__input" id="order-firstname" name="firstname" type="text" autocomplete="given-name" placeholder="Иван" required />
+          </div>
+          <div class="order-form__row">
+            <label class="order-form__label" for="order-lastname">Фамилия <span class="order-form__required" aria-hidden="true">*</span></label>
+            <input class="order-form__input" id="order-lastname" name="lastname" type="text" autocomplete="family-name" placeholder="Иванов" required />
+          </div>
+          <div class="order-form__row">
+            <label class="order-form__label" for="order-phone">Мобильный телефон <span class="order-form__required" aria-hidden="true">*</span></label>
+            <input class="order-form__input" id="order-phone" name="phone" type="tel" autocomplete="tel" inputmode="numeric" placeholder="+7(916)-000-00-00" required />
+          </div>
+          <div class="order-form__row">
+            <label class="order-form__label" for="order-email">Электронная почта <span class="order-form__required" aria-hidden="true">*</span></label>
+            <input class="order-form__input" id="order-email" name="email" type="email" autocomplete="email" placeholder="example@mail.ru" required aria-describedby="order-email-error" aria-invalid="false" />
+            <span class="order-form__error" id="order-email-error" role="alert" aria-live="polite" hidden></span>
+          </div>
+          <div class="order-form__row">
+            <label class="order-form__label" for="order-telegram">Telegram</label>
+            <input class="order-form__input" id="order-telegram" name="telegram" type="text" autocomplete="username" placeholder="@username" />
+          </div>
+          <div class="order-form__row">
+            <label class="order-form__label" for="order-region">Регион / Область <span class="order-form__required" aria-hidden="true">*</span></label>
+            <select class="order-form__input order-form__select" id="order-region" name="region" autocomplete="address-level1" required>
+              <option value="" disabled selected>Выберите регион</option>
+              <option value="Республика Адыгея">Республика Адыгея</option>
+              <option value="Республика Алтай">Республика Алтай</option>
+              <option value="Алтайский край">Алтайский край</option>
+              <option value="Амурская область">Амурская область</option>
+              <option value="Архангельская область">Архангельская область</option>
+              <option value="Астраханская область">Астраханская область</option>
+              <option value="Республика Башкортостан">Республика Башкортостан</option>
+              <option value="Белгородская область">Белгородская область</option>
+              <option value="Брянская область">Брянская область</option>
+              <option value="Республика Бурятия">Республика Бурятия</option>
+              <option value="Республика Дагестан">Республика Дагестан</option>
+              <option value="Еврейская автономная область">Еврейская автономная область</option>
+              <option value="Забайкальский край">Забайкальский край</option>
+              <option value="Ивановская область">Ивановская область</option>
+              <option value="Республика Ингушетия">Республика Ингушетия</option>
+              <option value="Иркутская область">Иркутская область</option>
+              <option value="Кабардино-Балкарская Республика">Кабардино-Балкарская Республика</option>
+              <option value="Калининградская область">Калининградская область</option>
+              <option value="Республика Калмыкия">Республика Калмыкия</option>
+              <option value="Калужская область">Калужская область</option>
+              <option value="Камчатский край">Камчатский край</option>
+              <option value="Карачаево-Черкесская Республика">Карачаево-Черкесская Республика</option>
+              <option value="Республика Карелия">Республика Карелия</option>
+              <option value="Кемеровская область — Кузбасс">Кемеровская область — Кузбасс</option>
+              <option value="Кировская область">Кировская область</option>
+              <option value="Республика Коми">Республика Коми</option>
+              <option value="Костромская область">Костромская область</option>
+              <option value="Краснодарский край">Краснодарский край</option>
+              <option value="Красноярский край">Красноярский край</option>
+              <option value="Курганская область">Курганская область</option>
+              <option value="Курская область">Курская область</option>
+              <option value="Ленинградская область">Ленинградская область</option>
+              <option value="Липецкая область">Липецкая область</option>
+              <option value="Магаданская область">Магаданская область</option>
+              <option value="Республика Марий Эл">Республика Марий Эл</option>
+              <option value="Республика Мордовия">Республика Мордовия</option>
+              <option value="Москва">Москва</option>
+              <option value="Московская область">Московская область</option>
+              <option value="Мурманская область">Мурманская область</option>
+              <option value="Ненецкий автономный округ">Ненецкий автономный округ</option>
+              <option value="Нижегородская область">Нижегородская область</option>
+              <option value="Новгородская область">Новгородская область</option>
+              <option value="Новосибирская область">Новосибирская область</option>
+              <option value="Омская область">Омская область</option>
+              <option value="Оренбургская область">Оренбургская область</option>
+              <option value="Орловская область">Орловская область</option>
+              <option value="Пензенская область">Пензенская область</option>
+              <option value="Пермский край">Пермский край</option>
+              <option value="Приморский край">Приморский край</option>
+              <option value="Псковская область">Псковская область</option>
+              <option value="Ростовская область">Ростовская область</option>
+              <option value="Рязанская область">Рязанская область</option>
+              <option value="Республика Саха (Якутия)">Республика Саха (Якутия)</option>
+              <option value="Сахалинская область">Сахалинская область</option>
+              <option value="Санкт-Петербург">Санкт-Петербург</option>
+              <option value="Саратовская область">Саратовская область</option>
+              <option value="Самарская область">Самарская область</option>
+              <option value="Республика Северная Осетия — Алания">Республика Северная Осетия — Алания</option>
+              <option value="Свердловская область">Свердловская область</option>
+              <option value="Смоленская область">Смоленская область</option>
+              <option value="Ставропольский край">Ставропольский край</option>
+              <option value="Тамбовская область">Тамбовская область</option>
+              <option value="Республика Татарстан">Республика Татарстан</option>
+              <option value="Тверская область">Тверская область</option>
+              <option value="Томская область">Томская область</option>
+              <option value="Тульская область">Тульская область</option>
+              <option value="Республика Тыва">Республика Тыва</option>
+              <option value="Тюменская область">Тюменская область</option>
+              <option value="Удмуртская Республика">Удмуртская Республика</option>
+              <option value="Ульяновская область">Ульяновская область</option>
+              <option value="Хабаровский край">Хабаровский край</option>
+              <option value="Республика Хакасия">Республика Хакасия</option>
+              <option value="Ханты-Мансийский автономный округ — Югра">Ханты-Мансийский автономный округ — Югра</option>
+              <option value="Челябинская область">Челябинская область</option>
+              <option value="Чеченская Республика">Чеченская Республика</option>
+              <option value="Чувашская Республика">Чувашская Республика</option>
+              <option value="Чукотский автономный округ">Чукотский автономный округ</option>
+              <option value="Ямало-Ненецкий автономный округ">Ямало-Ненецкий автономный округ</option>
+              <option value="Ярославская область">Ярославская область</option>
+            </select>
+          </div>
+          <div class="order-form__row">
+            <label class="order-form__label" for="order-city">Город <span class="order-form__required" aria-hidden="true">*</span></label>
+            <input class="order-form__input" id="order-city" name="city" type="text" autocomplete="address-level2" placeholder="Москва" required />
+          </div>
+          <div class="order-form__row">
+            <label class="order-form__label" for="order-address">Адрес доставки <span class="order-form__required" aria-hidden="true">*</span></label>
+            <input class="order-form__input" id="order-address" name="address" type="text" autocomplete="street-address" placeholder="ул. Примерная, д. 1, кв. 1" required />
+          </div>
+          <div class="order-form__row">
+            <label class="order-form__label" for="order-comment">Комментарий</label>
+            <textarea class="order-form__input order-form__textarea" id="order-comment" name="comment" rows="3" placeholder="Дополнительные пожелания"></textarea>
+          </div>
+          <div class="order-form__actions">
+            <button type="submit" class="order-form__submit" id="order-form-submit-btn">Отправить заявку</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <footer class="site-footer">
+      <small class="copyright">© Лёвушкин <span id="year">2026</span></small>
+    </footer>
+
+    <script>
+      // Keep copyright year current.
+      document.getElementById("year").textContent = String(
+        new Date().getFullYear(),
+      );
+
+      // Typing animation for the description (starts 10s after load).
+      (() => {
+        const el = document.querySelector(".product__description");
+        if (!el) return;
+
+        const prefersReducedMotion =
+          window.matchMedia &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReducedMotion) return;
+
+        const fullText = el.innerText.replace(/\r\n/g, "\n");
+        const chars = Array.from(fullText);
+
+        const textSpan = document.createElement("span");
+        textSpan.className = "typing-text";
+
+        el.textContent = "";
+        el.append(textSpan);
+
+        const startDelayMs = 10_000;
+        const durationMs = Math.min(Math.max(chars.length * 75, 2200), 8000);
+        let i = 0;
+
+        const appendChar = (ch) => {
+          if (ch === "\n") textSpan.append(document.createElement("br"));
+          else textSpan.append(document.createTextNode(ch));
+        };
+
+        const startTyping = () => {
+          const start = performance.now();
+
+          const tick = (t) => {
+            const p = Math.min(1, (t - start) / durationMs);
+            const target = Math.floor(p * chars.length);
+
+            while (i < target) appendChar(chars[i++]);
+            if (p < 1) requestAnimationFrame(tick);
+          };
+
+          requestAnimationFrame(tick);
+        };
+
+        window.setTimeout(startTyping, startDelayMs);
+      })();
+
+      // Order form modal — submit to Django and then open Telegram
+      (() => {
+        const dialog = document.getElementById("order-dialog");
+        const openBtn = document.getElementById("open-order-form");
+        const closeBtn = document.getElementById("close-order-form");
+        const form = document.getElementById("order-form");
+        const submitBtn = document.getElementById("order-form-submit-btn");
+        const backdrop = dialog.querySelector(".order-dialog__backdrop");
+
+        function getCookie(name) {
+          const match = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1") + "=([^;]*)"));
+          return match ? decodeURIComponent(match[1]) : null;
+        }
+
+        function openDialog() {
+          dialog.showModal();
+          openBtn.setAttribute("aria-expanded", "true");
+          document.body.style.overflow = "hidden";
+        }
+
+        function closeDialog() {
+          dialog.close();
+          openBtn.setAttribute("aria-expanded", "false");
+          document.body.style.overflow = "";
+        }
+
+        function onSubmitSuccess() {
+          closeDialog();
+          form.reset();
+          if (emailError) emailError.hidden = true;
+          if (emailInput) emailInput.setCustomValidity("");
+          const msg = "Здравствуйте! Хочу оформить заказ на картину.";
+          window.open("https://t.me/levushkin?text=" + encodeURIComponent(msg), "_blank", "noopener,noreferrer");
+        }
+
+        openBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          openDialog();
+        });
+
+        closeBtn.addEventListener("click", closeDialog);
+        backdrop.addEventListener("click", closeDialog);
+
+        dialog.addEventListener("cancel", (e) => {
+          e.preventDefault();
+          closeDialog();
+        });
+
+        dialog.addEventListener("close", () => {
+          openBtn.setAttribute("aria-expanded", "false");
+          document.body.style.overflow = "";
+        });
+
+        // Email validation with nice error message
+        const emailInput = document.getElementById("order-email");
+        const emailError = document.getElementById("order-email-error");
+        const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const EMAIL_ERROR_MSG = "Введите корректный адрес электронной почты (например, name@mail.ru)";
+
+        function validateEmailField() {
+          if (!emailInput || !emailError) return;
+          const value = (emailInput.value || "").trim();
+          const validFormat = value === "" || EMAIL_REGEX.test(value);
+          if (value !== "" && !validFormat) {
+            emailInput.setCustomValidity(EMAIL_ERROR_MSG);
+            emailError.textContent = EMAIL_ERROR_MSG;
+            emailError.hidden = false;
+            emailInput.setAttribute("aria-invalid", "true");
+          } else {
+            emailInput.setCustomValidity("");
+            emailError.textContent = "";
+            emailError.hidden = true;
+            emailInput.setAttribute("aria-invalid", "false");
+          }
+        }
+
+        if (emailInput && emailError) {
+          emailInput.addEventListener("blur", validateEmailField);
+          emailInput.addEventListener("input", () => {
+            const value = emailInput.value.trim();
+            if (value === "" || EMAIL_REGEX.test(value)) {
+              emailInput.setCustomValidity("");
+              emailError.textContent = "";
+              emailError.hidden = true;
+              emailInput.setAttribute("aria-invalid", "false");
+            }
+          });
+        }
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          validateEmailField();
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+
+          const formData = {
+            firstname: (form.querySelector('[name="firstname"]') || {}).value || "",
+            lastname: (form.querySelector('[name="lastname"]') || {}).value || "",
+            phone: (form.querySelector('[name="phone"]') || {}).value || "",
+            email: (form.querySelector('[name="email"]') || {}).value || "",
+            telegram: (form.querySelector('[name="telegram"]') || {}).value || "",
+            region: (form.querySelector('[name="region"]') || {}).value || "",
+            city: (form.querySelector('[name="city"]') || {}).value || "",
+            address: (form.querySelector('[name="address"]') || {}).value || "",
+            comment: (form.querySelector('[name="comment"]') || {}).value || "",
+          };
+
+          const csrfToken = getCookie("csrftoken");
+          const headers = { "Content-Type": "application/json" };
+          if (csrfToken) headers["X-CSRFToken"] = csrfToken;
+
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Отправка…";
+          }
+
+          fetch("/api/order/", {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(formData),
+            credentials: "same-origin",
+          })
+            .then((res) => {
+              if (res.ok) return res.json();
+              return res.json().then((data) => Promise.reject(new Error(data.error || res.statusText)));
+            })
+            .then(() => onSubmitSuccess())
+            .catch((err) => {
+              if (emailError) {
+                emailError.textContent = err.message || "Ошибка отправки. Попробуйте ещё раз или напишите в Telegram.";
+                emailError.hidden = false;
+              }
+            })
+            .finally(() => {
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Отправить заявку";
+              }
+            });
+        });
+      })();
+
+      // Phone input: add "+" on focus, format as +X(XXX)-XXX-XX-XX
+      (() => {
+        const phoneInput = document.getElementById("order-phone");
+        if (!phoneInput) return;
+
+        function formatPhone(value) {
+          const digits = value.replace(/\D/g, "");
+          const limited = digits.slice(0, 11);
+          if (limited.length === 0) return "";
+          if (limited.length <= 1) return "+" + limited;
+          if (limited.length <= 4) return "+" + limited[0] + "(" + limited.slice(1) + ")";
+          if (limited.length <= 7) return "+" + limited[0] + "(" + limited.slice(1, 4) + ")-" + limited.slice(4);
+          if (limited.length <= 9) return "+" + limited[0] + "(" + limited.slice(1, 4) + ")-" + limited.slice(4, 7) + "-" + limited.slice(7);
+          return "+" + limited[0] + "(" + limited.slice(1, 4) + ")-" + limited.slice(4, 7) + "-" + limited.slice(7, 9) + "-" + limited.slice(9, 11);
+        }
+
+        phoneInput.addEventListener("focus", () => {
+          const v = phoneInput.value;
+          if (!v.startsWith("+")) {
+            phoneInput.value = v ? "+" + v.replace(/\D/g, "").slice(0, 11) : "+";
+            if (phoneInput.value.length > 1) phoneInput.value = formatPhone(phoneInput.value);
+          }
+        });
+
+        phoneInput.addEventListener("input", () => {
+          const start = phoneInput.selectionStart;
+          const oldVal = phoneInput.value;
+          const formatted = formatPhone(oldVal);
+          phoneInput.value = formatted;
+          const newLen = formatted.length;
+          const oldLen = oldVal.length;
+          let newStart = Math.min(start, newLen);
+          if (newLen > oldLen && formatted[newStart] && /\D/.test(formatted[newStart])) newStart++;
+          phoneInput.setSelectionRange(newStart, newStart);
+        });
+      })();
+    </script>
+  </body>
+</html>
