@@ -110,7 +110,7 @@
           </div>
           <div class="order-form__row">
             <label class="order-form__label" for="order-telegram">Telegram</label>
-            <input class="order-form__input" id="order-telegram" name="telegram" type="text" autocomplete="username" placeholder="@username" />
+            <input class="order-form__input" id="order-telegram" name="telegram" type="text" autocomplete="username" placeholder="@username" value="@" />
           </div>
           <div class="order-form__row">
             <label class="order-form__label" for="order-region">Регион / Область <span class="order-form__required" aria-hidden="true">*</span></label>
@@ -551,6 +551,17 @@
           phoneInput.value = formatted;
           const newStart = positionAfterDigits(formatted, digitsBeforeCursor);
           phoneInput.setSelectionRange(newStart, newStart);
+        });
+      })();
+
+      // Telegram nickname: default "@", optionally removable
+      (() => {
+        const telegramInput = document.getElementById("order-telegram");
+        if (!telegramInput) return;
+        telegramInput.addEventListener("focus", () => {
+          const v = telegramInput.value.trim();
+          if (!v) telegramInput.value = "@";
+          else if (!v.startsWith("@")) telegramInput.value = "@" + v.replace(/^@+/, "");
         });
       })();
     </script>

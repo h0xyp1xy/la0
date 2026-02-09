@@ -6,6 +6,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 
 from .models import ContactSubmission
+from .telegram_notify import format_order_message, send_telegram_message
 
 
 def redirect_404_to_home(request, exception=None, path=None):
@@ -51,12 +52,14 @@ def submit_order(request):
         lastname=(body.get("lastname") or "").strip(),
         phone=(body.get("phone") or "").strip(),
         email=(body.get("email") or "").strip(),
-        telegram=(body.get("telegram") or "").strip(),
+        telegram="" if (body.get("telegram") or "").strip() == "@" else (body.get("telegram") or "").strip(),
         region=(body.get("region") or "").strip(),
         city=(body.get("city") or "").strip(),
         address=(body.get("address") or "").strip(),
         comment=(body.get("comment") or "").strip(),
     )
     submission.save()
+
+    send_telegram_message(format_order_message(submission))
 
     return JsonResponse({"ok": True})
