@@ -22,6 +22,14 @@ class Ehawp5View(TemplateView):
     template_name = "orders/ehawp5.html"
 
 
+class OfferView(TemplateView):
+    template_name = "orders/dogovor-oferta.html"
+
+
+class PrivacyView(TemplateView):
+    template_name = "orders/politika-konfidencialnosti.html"
+
+
 @require_http_methods(["POST"])
 def submit_order(request):
     """Accept order/contact form data and save to database."""
