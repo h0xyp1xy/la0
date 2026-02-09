@@ -419,12 +419,15 @@ a:hover {
 
 .product__figure {
   margin: 0;
-  width: min(520px, 92vw);
+  width: min(505px, calc(100% - 15px));
+  max-width: calc(100% - 15px);
+  box-sizing: border-box;
 }
 
 .product__image {
   display: block;
   width: 100%;
+  max-width: 100%;
   height: auto;
   aspect-ratio: 1 / 1;
   object-fit: cover;
@@ -433,6 +436,7 @@ a:hover {
   box-shadow: var(--raise-md);
   transition: box-shadow 180ms ease, transform 180ms ease, filter 180ms ease;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .product__figure:hover .product__image,
@@ -444,7 +448,8 @@ a:hover {
 }
 
 .product__info {
-  width: min(720px, 92vw);
+  width: min(505px, calc(100% - 15px));
+  max-width: calc(100% - 15px);
   display: grid;
   gap: 10px;
   justify-items: center;
@@ -633,7 +638,7 @@ a:hover {
   max-width: min(480px, calc(100vw - 32px));
   max-height: calc(100vh - 2rem - var(--safe-top) - var(--safe-bottom));
   overflow-y: auto;
-  padding: 28px 24px 24px;
+  padding: 28px 24px 44px 24px;
   border-radius: var(--radius);
   background: var(--surface);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -673,6 +678,31 @@ a:hover {
   font-family: var(--font-display);
   font-size: clamp(18px, 2vw, 22px);
   font-weight: 400;
+}
+
+/* Success toast after order submit */
+.order-success-toast {
+  position: fixed;
+  top: max(1rem, var(--safe-top));
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  z-index: 100;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 280ms ease, opacity 280ms ease, visibility 280ms ease;
+}
+
+.order-success-toast--visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  visibility: visible;
 }
 
 .order-form {
@@ -725,8 +755,7 @@ a:hover {
 }
 
 .order-form__input::placeholder {
-  color: var(--muted);
-  opacity: 0.8;
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .order-form__textarea {
@@ -745,6 +774,7 @@ a:hover {
 
 .order-form__actions {
   margin-top: 8px;
+  margin-bottom: 20px;
 }
 
 .order-form__submit {
@@ -801,14 +831,17 @@ a:hover {
   .product {
     min-height: auto;
     gap: 18px;
+    justify-items: center;
   }
 
   .product__figure {
-    width: min(520px, 96vw);
+    width: min(505px, calc(100% - 20px));
+    max-width: calc(100% - 20px);
   }
 
   .product__info {
-    width: min(720px, 96vw);
+    width: min(505px, calc(100% - 20px));
+    max-width: calc(100% - 20px);
   }
 
   .product__description {
@@ -819,7 +852,7 @@ a:hover {
     margin: 1rem auto;
     max-width: calc(100vw - 24px);
     max-height: calc(100vh - 2rem);
-    padding: 24px 20px 20px;
+    padding: 24px 20px 40px 20px;
   }
 
   .order-dialog__close {
@@ -858,6 +891,16 @@ a:hover {
     padding: 32px 12px 24px;
   }
 
+  .product__figure {
+    width: min(505px, calc(100% - 20px));
+    max-width: calc(100% - 20px);
+  }
+
+  .product__info {
+    width: min(505px, calc(100% - 20px));
+    max-width: calc(100% - 20px);
+  }
+
   .product__title {
     font-size: clamp(20px, 5.5vw, 28px);
   }
@@ -891,7 +934,7 @@ a:hover {
 
   .order-dialog__panel {
     margin: 12px auto;
-    padding: 20px 16px 16px;
+    padding: 20px 16px 36px 16px;
   }
 
   .order-dialog__title {
@@ -964,6 +1007,16 @@ a:hover {
     padding: 24px 10px 20px;
   }
 
+  .product__figure {
+    width: min(505px, calc(100% - 20px));
+    max-width: calc(100% - 20px);
+  }
+
+  .product__info {
+    width: min(505px, calc(100% - 20px));
+    max-width: calc(100% - 20px);
+  }
+
   .product {
     gap: 14px;
   }
@@ -995,7 +1048,7 @@ a:hover {
 
   .order-dialog__panel {
     margin: 10px auto;
-    padding: 16px 14px 14px;
+    padding: 16px 14px 34px 14px;
     max-width: calc(100vw - 20px);
   }
 

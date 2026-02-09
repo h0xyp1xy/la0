@@ -4,8 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
     <title>Политика конфиденциальности — Левушкин</title>
+    <link rel="icon" href="{% static 'assets/logo.jpg' %}" type="image/jpeg" sizes="any" />
+    <link rel="apple-touch-icon" href="{% static 'assets/logo.jpg' %}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -162,8 +164,8 @@
 
     <footer class="site-footer">
       <nav class="footer-links">
-        <a href="{% url 'offer' %}" target="_blank" rel="noopener noreferrer">Договор-оферта</a>
-        <a href="{% url 'privacy' %}" target="_blank" rel="noopener noreferrer">Политика конфиденциальности</a>
+        <a href="{% url 'offer' %}">Договор-оферта</a>
+        <a href="{% url 'privacy' %}">Политика конфиденциальности</a>
       </nav>
       <small class="copyright">© Лёвушкин <span id="year">2026</span></small>
     </footer>

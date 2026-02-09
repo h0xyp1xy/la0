@@ -1,4 +1,6 @@
 import json
+import logging
+
 from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
@@ -7,6 +9,8 @@ from django.views.generic import TemplateView
 
 from .models import ContactSubmission
 from .telegram_notify import format_order_message, send_telegram_message
+
+logger = logging.getLogger(__name__)
 
 
 def redirect_404_to_home(request, exception=None, path=None):
@@ -58,8 +62,18 @@ def submit_order(request):
         address=(body.get("address") or "").strip(),
         comment=(body.get("comment") or "").strip(),
     )
-    submission.save()
+    try:
+        submission.save()
+    except Exception as e:
+        logger.exception("Order form: failed to save submission")
+        return JsonResponse(
+            {"ok": False, "error": "Ошибка сохранения. Проверьте права на сервере (файл базы данных)."},
+            status=500,
+        )
 
-    send_telegram_message(format_order_message(submission))
+    try:
+        send_telegram_message(format_order_message(submission))
+    except Exception as e:
+        logger.warning("Order form: Telegram send failed: %s", e)
 
     return JsonResponse({"ok": True})

@@ -1,0 +1,23 @@
+[Unit]
+Description=la0 Django app (Gunicorn)
+After=network.target
+
+[Service]
+Type=notify
+User=la0app
+Group=la0app
+RuntimeDirectory=la0
+RuntimeDirectoryMode=0770
+
+WorkingDirectory=/home/ktt/Documents/la0/backend
+Environment="PATH=/home/ktt/Documents/la0/backend/.venv/bin"
+ExecStart=/home/ktt/Documents/la0/backend/.venv/bin/gunicorn config.wsgi:application \
+    --config /home/ktt/Documents/la0/deploy/gunicorn.conf.py
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
