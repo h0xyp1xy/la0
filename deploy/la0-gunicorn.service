@@ -10,8 +10,10 @@ RuntimeDirectory=la0
 RuntimeDirectoryMode=0770
 
 WorkingDirectory=/home/ktt/Documents/la0/backend
-Environment="PATH=/home/ktt/Documents/la0/backend/.venv/bin"
-ExecStart=/home/ktt/Documents/la0/backend/.venv/bin/gunicorn config.wsgi:application \
+Environment="PATH=/home/ktt/Documents/la0/env/bin"
+# Load .env from backend dir (DJANGO_SECRET_KEY, etc.)
+EnvironmentFile=-/home/ktt/Documents/la0/backend/.env
+ExecStart=/home/ktt/Documents/la0/env/bin/gunicorn config.wsgi:application \
     --config /home/ktt/Documents/la0/deploy/gunicorn.conf.py
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=mixed

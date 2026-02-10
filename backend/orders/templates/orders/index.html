@@ -512,7 +512,8 @@
             comment: (form.querySelector('[name="comment"]') || {}).value || "",
           };
 
-          const csrfToken = getCookie("csrftoken");
+          const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+          const csrfToken = csrfInput ? csrfInput.value : getCookie("csrftoken");
           const headers = { "Content-Type": "application/json" };
           if (csrfToken) headers["X-CSRFToken"] = csrfToken;
 
@@ -527,9 +528,20 @@
             headers: headers,
             body: JSON.stringify(formData),
             credentials: "same-origin",
-          }).then((res) => {
-            if (res.ok) return res.json();
-            return res.json().then((data) => Promise.reject(new Error(data.error || res.statusText)));
+          }).then(async (res) => {
+            const text = await res.text();
+            if (res.ok) {
+              try { return JSON.parse(text); } catch { return {}; }
+            }
+            try {
+              const data = JSON.parse(text);
+              throw new Error(data.error || res.statusText);
+            } catch (e) {
+              if (e instanceof SyntaxError) {
+                throw new Error(res.status === 403 ? "Сессия истекла. Обновите страницу и попробуйте снова." : "Ошибка сервера. Попробуйте позже.");
+              }
+              throw e;
+            }
           });
 
           Promise.all([sendRequest, minWait])

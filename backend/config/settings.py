@@ -12,14 +12,19 @@ if _env_file.exists():
     except ImportError:
         pass  # python-dotenv not installed
 
+DEBUG = os.environ.get("DJANGO_DEBUG", "0") == "1"
+
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
     "django-insecure-change-me-in-production",
 )
+if not DEBUG and SECRET_KEY == "django-insecure-change-me-in-production":
+    raise ValueError("Set DJANGO_SECRET_KEY in production")
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
-
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,levushkin.art,www.levushkin.art").split(",")
+    if h.strip()
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -43,7 +48,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "config.middleware.Redirect404ToHomeMiddleware",
+    "config.middleware.AdminLoginRateLimitMiddleware",
+    "config.middleware.SecurityHeadersMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -75,7 +81,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 12}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
@@ -91,8 +97,69 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",")
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",")
+    if o.strip()
+]
 
 # Telegram notifications (optional: set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID)
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+
+# --- Security ---
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# HTTPS / HSTS (enable behind TLS-terminating proxy)
+_USE_HTTPS = os.environ.get("DJANGO_USE_HTTPS", "0") == "1"
+if _USE_HTTPS:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+# Session
+SESSION_COOKIE_SECURE = _USE_HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+
+# CSRF
+CSRF_COOKIE_SECURE = _USE_HTTPS
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# Rate limiting: X-Real-IP when behind nginx
+RATELIMIT_IP_META_KEY = "HTTP_X_REAL_IP"
+
+# Rate limiting (uses default cache)
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+
+# Logging: security-related events
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "security": {
+            "format": "{asctime} {levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "security",
+        },
+    },
+    "loggers": {
+        "django.security": {"handlers": ["console"], "level": "WARNING"},
+        "django.request": {"handlers": ["console"], "level": "ERROR"},
+        "django.security.csrf": {"handlers": ["console"], "level": "WARNING"},
+    },
+}

@@ -480,6 +480,7 @@ a:hover {
 
 .product__price {
   margin: 14px 0 0;
+  min-width: 161px;
   position: relative;
   display: grid;
   gap: 6px;
@@ -741,6 +742,31 @@ a:hover {
 
 .order-success__line:last-of-type {
   margin-bottom: 0;
+}
+
+/* Success toast after order submit */
+.order-success-toast {
+  position: fixed;
+  top: max(1rem, var(--safe-top));
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  z-index: 100;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 280ms ease, opacity 280ms ease, visibility 280ms ease;
+}
+
+.order-success-toast--visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  visibility: visible;
 }
 
 .order-form {

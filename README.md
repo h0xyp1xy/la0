@@ -32,6 +32,22 @@
 
 Если переменные не заданы, уведомления не отправляются, заявки по-прежнему сохраняются в базу.
 
+## Безопасность (продакшен)
+
+Перед выкладкой в прод задайте переменные окружения:
+
+- `DJANGO_DEBUG=0` — отключить режим отладки
+- `DJANGO_SECRET_KEY` — длинный случайный ключ (обязателен при DEBUG=0)
+- `ALLOWED_HOSTS` — через запятую: `levushkin.art,www.levushkin.art`
+- `CSRF_TRUSTED_ORIGINS` — через запятую: `https://levushkin.art,https://www.levushkin.art`
+- `DJANGO_USE_HTTPS=1` — включить HSTS, редирект на HTTPS, secure cookies (после настройки TLS)
+
+Настройте HTTPS (certbot), затем включите `DJANGO_USE_HTTPS=1`. Для Nginx включите rate limit: добавьте в `http {}` файла nginx.conf строку `include /path/to/la0/deploy/la0-nginx-ratelimit-zone.conf;` и раскомментируйте `limit_req` в `la0-nginx.conf`. В `http {}` добавьте `server_tokens off;` чтобы скрыть версию Nginx.
+
+Проверка зависимостей: `pip install safety && safety check`
+
+Подробный чеклист: см. `SECURITY.md`
+
 ## Что менять
 
 - **Фото картины**: замените файл `assets/painting.svg` на ваше изображение (можно `.jpg/.png/.webp`), и обновите `src` у тега `<img>` в `index.html` при необходимости.
