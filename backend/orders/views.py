@@ -1,7 +1,7 @@
 import json
 import logging
 
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -11,6 +11,13 @@ from .models import ContactSubmission
 from .telegram_notify import format_order_message, send_telegram_message
 
 logger = logging.getLogger(__name__)
+
+
+def robots_txt(request):
+    """Serve robots.txt with sitemap reference."""
+    sitemap_url = request.build_absolute_uri("/sitemap.xml")
+    content = f"User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: {sitemap_url}\n"
+    return HttpResponse(content, content_type="text/plain")
 
 
 def redirect_404_to_home(request, exception=None, path=None):

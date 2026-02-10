@@ -1,2 +1,25 @@
 # Local env with secrets (Telegram token, etc.)
 backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+.venv/
+venv/
+
+# Django
+backend/db.sqlite3
+backend/staticfiles/
+*.log
+*.pot
+local_settings.py
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
