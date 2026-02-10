@@ -213,7 +213,6 @@
             <textarea class="order-form__input order-form__textarea" id="order-comment" name="comment" rows="3" placeholder="Дополнительные пожелания"></textarea>
           </div>
           <div class="order-form__actions">
-            <button type="button" class="order-form__autofill" id="order-form-autofill-btn">Заполнить тестовыми данными</button>
             <button type="submit" class="order-form__submit" id="order-form-submit-btn">Отправить заявку</button>
           </div>
         </form>
@@ -469,26 +468,6 @@
           document.body.style.overflow = "";
           resetFormState();
         });
-
-        const autofillBtn = document.getElementById("order-form-autofill-btn");
-        if (autofillBtn) {
-          autofillBtn.addEventListener("click", () => {
-            const byName = (n) => form.querySelector('[name="' + n + '"]');
-            if (byName("firstname")) byName("firstname").value = "Иван";
-            if (byName("lastname")) byName("lastname").value = "Иванов";
-            if (byName("phone")) byName("phone").value = "+7(916)-041-19-45";
-            if (byName("email")) byName("email").value = "ivan@example.com";
-            if (byName("telegram")) byName("telegram").value = "@ivan_test";
-            if (byName("region")) byName("region").value = "Москва";
-            if (byName("city")) byName("city").value = "Москва";
-            if (byName("address")) byName("address").value = "ул. Примерная, д. 1, кв. 1";
-            if (byName("comment")) byName("comment").value = "Тестовый заказ";
-            validatePhoneField();
-            validateEmailField();
-            if (phoneError) phoneError.hidden = true;
-            if (emailError) { emailError.hidden = true; emailError.textContent = ""; }
-          });
-        }
 
         form.addEventListener("submit", (e) => {
           e.preventDefault();
