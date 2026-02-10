@@ -20,7 +20,7 @@ class Command(BaseCommand):
         if not chat_id:
             self.stderr.write(self.style.ERROR("TELEGRAM_CHAT_ID is not set. Add it to backend/.env"))
             return
-        msg = "🧪 Тест уведомлений Левушкин — если вы видите это сообщение, бот настроен."
+        msg = "🧪 Тест уведомлений Лёвушкин — если вы видите это сообщение, бот настроен."
         if send_telegram_message(msg):
             self.stdout.write(self.style.SUCCESS("Message sent. Check your Telegram."))
         else:
