@@ -4,10 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <title>Левушкин — Картина на продажу</title>
+    <title>Лёвушкин</title>
     <meta
       name="description"
-      content="Левушкин — продажа картины. Название, описание и цена."
+      content="Лёвушкин — продажа картины. Творчество Федора Лёвушкина."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,11 +23,11 @@
     <header class="site-header">
       <nav class="bar" aria-label="Верхняя навигация">
         <div class="bar__inner">
-          <a class="logo" href="./" aria-label="Левушкин — на главную">
+          <a class="logo" href="./" aria-label="Лёвушкин — на главную">
             <img
               class="logo__img"
               src="./assets/logo.jpg"
-              alt="Левушкин"
+              alt="Лёвушкин"
               loading="eager"
               decoding="async"
             />
@@ -36,7 +36,7 @@
           <div class="contacts" aria-label="Контакты">
             <a class="contact" href="tel:+79160411945">
               <span class="contact__label">Телефон</span>
-              <span class="contact__value">+7(916)-041-19-45</span>
+              <span class="contact__value">+7 (916) 041-19-45</span>
             </a>
             <a
               class="contact"
@@ -86,8 +86,9 @@
       <div class="order-dialog__backdrop"></div>
       <div class="order-dialog__panel">
         <button type="button" class="order-dialog__close" id="close-order-form" aria-label="Закрыть форму">×</button>
-        <h2 id="order-dialog-title" class="order-dialog__title">Оформление заказа</h2>
-        <form class="order-form" id="order-form" novalidate>
+        <div class="order-dialog__form-wrap" id="order-dialog-form-wrap">
+          <h2 id="order-dialog-title" class="order-dialog__title">Оформление заказа</h2>
+          <form class="order-form" id="order-form" novalidate>
           <div class="order-form__row">
             <label class="order-form__label" for="order-firstname">Имя <span class="order-form__required" aria-hidden="true">*</span></label>
             <input class="order-form__input" id="order-firstname" name="firstname" type="text" autocomplete="given-name" placeholder="Иван" required />
@@ -208,9 +209,17 @@
             <textarea class="order-form__input order-form__textarea" id="order-comment" name="comment" rows="3" placeholder="Дополнительные пожелания"></textarea>
           </div>
           <div class="order-form__actions">
-            <button type="submit" class="order-form__submit">Отправить заявку</button>
+            <button type="button" class="order-form__autofill" id="order-form-autofill-btn">Заполнить тестовыми данными</button>
+            <button type="submit" class="order-form__submit" id="order-form-submit-btn">Отправить заявку</button>
           </div>
         </form>
+        <div class="order-dialog__success" id="order-dialog-success" aria-hidden="true">
+          <span class="order-success__icon" aria-hidden="true">✓</span>
+          <p class="order-success__title">Спасибо за заказ!</p>
+          <p class="order-success__line">Доставим в ближайшее время</p>
+          <p class="order-success__line">Будьте на связи</p>
+        </div>
+        </div>
       </div>
     </dialog>
 
@@ -276,12 +285,35 @@
       // Order form modal
       (() => {
         const dialog = document.getElementById("order-dialog");
+        const panel = dialog.querySelector(".order-dialog__panel");
         const openBtn = document.getElementById("open-order-form");
         const closeBtn = document.getElementById("close-order-form");
         const form = document.getElementById("order-form");
+        const submitBtn = document.getElementById("order-form-submit-btn");
+        const successBlock = document.getElementById("order-dialog-success");
         const backdrop = dialog.querySelector(".order-dialog__backdrop");
 
+        function showSuccessInForm() {
+          if (panel) panel.classList.add("order-dialog__panel--success");
+          if (successBlock) successBlock.setAttribute("aria-hidden", "false");
+        }
+
+        function resetFormState() {
+          form.reset();
+          if (phoneError) phoneError.hidden = true;
+          if (phoneInput) phoneInput.setCustomValidity("");
+          if (emailError) emailError.hidden = true;
+          if (emailInput) emailInput.setCustomValidity("");
+          if (panel) panel.classList.remove("order-dialog__panel--success");
+          if (successBlock) successBlock.setAttribute("aria-hidden", "true");
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Отправить заявку";
+          }
+        }
+
         function openDialog() {
+          resetFormState();
           dialog.showModal();
           openBtn.setAttribute("aria-expanded", "true");
           document.body.style.overflow = "hidden";
@@ -291,6 +323,7 @@
           dialog.close();
           openBtn.setAttribute("aria-expanded", "false");
           document.body.style.overflow = "";
+          resetFormState();
         }
 
         openBtn.addEventListener("click", (e) => {
@@ -309,6 +342,7 @@
         dialog.addEventListener("close", () => {
           openBtn.setAttribute("aria-expanded", "false");
           document.body.style.overflow = "";
+          resetFormState();
         });
 
         // Empty required fields: set custom error messages in Russian
@@ -427,15 +461,24 @@
           });
         }
 
-        function onSubmitSuccess() {
-          closeDialog();
-          form.reset();
-          if (phoneError) phoneError.hidden = true;
-          if (phoneInput) phoneInput.setCustomValidity("");
-          if (emailError) emailError.hidden = true;
-          if (emailInput) emailInput.setCustomValidity("");
-          const msg = "Здравствуйте! Хочу оформить заказ на картину.";
-          window.open("https://t.me/levushkin_art?text=" + encodeURIComponent(msg), "_blank", "noopener,noreferrer");
+        const autofillBtn = document.getElementById("order-form-autofill-btn");
+        if (autofillBtn) {
+          autofillBtn.addEventListener("click", () => {
+            const byName = (n) => form.querySelector('[name="' + n + '"]');
+            if (byName("firstname")) byName("firstname").value = "Иван";
+            if (byName("lastname")) byName("lastname").value = "Иванов";
+            if (byName("phone")) byName("phone").value = "+7(916)-041-19-45";
+            if (byName("email")) byName("email").value = "ivan@example.com";
+            if (byName("telegram")) byName("telegram").value = "@ivan_test";
+            if (byName("region")) byName("region").value = "Москва";
+            if (byName("city")) byName("city").value = "Москва";
+            if (byName("address")) byName("address").value = "ул. Примерная, д. 1, кв. 1";
+            if (byName("comment")) byName("comment").value = "Тестовый заказ";
+            validatePhoneField();
+            validateEmailField();
+            if (phoneError) phoneError.hidden = true;
+            if (emailError) emailError.hidden = true;
+          });
         }
 
         form.addEventListener("submit", (e) => {
@@ -447,9 +490,17 @@
             form.reportValidity();
             return;
           }
-          // Static site: no backend; open Telegram with pre-filled message.
-          // To save to a server later, POST formData to your API and call onSubmitSuccess() on success.
-          onSubmitSuccess();
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Отправка…";
+          }
+          setTimeout(() => {
+            showSuccessInForm();
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Отправить заявку";
+            }
+          }, 3000);
         });
       })();
 
@@ -515,6 +566,7 @@
           const v = telegramInput.value.trim();
           if (!v) telegramInput.value = "@";
           else if (!v.startsWith("@")) telegramInput.value = "@" + v.replace(/^@+/, "");
+          setTimeout(() => telegramInput.setSelectionRange(1, 1), 0);
         });
       })();
     </script>
