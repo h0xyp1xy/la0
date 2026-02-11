@@ -21,7 +21,7 @@ yp = ORDERS / "yookassa_payment.py"
 yp.write_text('''# YooKassa: set YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY in .env
 import logging, os, uuid
 logger = logging.getLogger(__name__)
-ORDER_AMOUNT_RUB = "10.00"  # 10 RUB for testing
+ORDER_AMOUNT_RUB = "300000.00"
 
 def create_payment(return_url, cancel_url, description, metadata=None):
     shop_id = os.environ.get("YOOKASSA_SHOP_ID", "").strip()

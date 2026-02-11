@@ -480,7 +480,7 @@ a:hover {
 
 .product__price {
   margin: 14px 0 0;
-  min-width: 161px;
+  min-width: 191px;
   position: relative;
   display: grid;
   gap: 6px;
