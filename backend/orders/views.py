@@ -3,8 +3,9 @@ import logging
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
@@ -12,6 +13,8 @@ from django_ratelimit.decorators import ratelimit
 
 from .models import ContactSubmission
 from .telegram_notify import format_order_message, send_telegram_message
+from .telegram_payment_notify import format_payment_success_message, send_payment_success_message
+from .yookassa_payment import create_payment
 
 logger = logging.getLogger(__name__)
 
@@ -24,14 +27,20 @@ def robots_txt(request):
 
 
 def page_not_found(request, exception=None):
-    """Return 404 for unknown paths (no redirect — clearer for security scanners)."""
-    from django.http import HttpResponseNotFound
-    return HttpResponseNotFound("<h1>404 Not Found</h1>")
+    """Redirect all 404s to the main page."""
+    return HttpResponseRedirect("/")
 
 
 @method_decorator(ensure_csrf_cookie, name="get")
 class HomeView(TemplateView):
     template_name = "orders/index.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        p = self.request.GET.get("payment")
+        context["payment_success"] = p == "success"
+        context["payment_failed"] = p == "failed"
+        return context
 
 
 class Ehawp5View(TemplateView):
@@ -95,6 +104,11 @@ def submit_order(request):
     vals = {}
     for k, lim in limits.items():
         raw = (body.get(k) or "").strip()
+        if k == "telegram" and (not raw or raw == "@"):
+            return JsonResponse(
+                {"ok": False, "error": "Укажите имя пользователя в Telegram (например, @username)."},
+                status=400,
+            )
         if k == "telegram" and raw == "@":
             raw = ""
         if len(raw) > lim:
@@ -134,4 +148,40 @@ def submit_order(request):
     except Exception as e:
         logger.warning("Order form: Telegram send failed: %s", e)
 
-    return JsonResponse({"ok": True})
+    base = request.build_absolute_uri("/")
+    return_url = f"{base}?payment=success"
+    cancel_url = f"{base}?payment=failed"
+    confirmation_url, err = create_payment(return_url, cancel_url, "Мечты воплощаемые с нуля — Лёвушкин", {"submission_uid": str(submission.uid)})
+    if err:
+        return JsonResponse({"ok": False, "error": err}, status=502)
+    return JsonResponse({"ok": True, "confirmation_url": confirmation_url})
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def yookassa_webhook(request):
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return HttpResponse(status=400)
+    if body.get("event") != "payment.succeeded":
+        return HttpResponse(status=200)
+    obj = body.get("object") or {}
+    payment_id = obj.get("id", "")
+    amount_obj = obj.get("amount") or {}
+    amount = amount_obj.get("value", "0")
+    currency = amount_obj.get("currency", "RUB")
+    metadata = obj.get("metadata") or {}
+    submission_uid = metadata.get("submission_uid")
+    submission = None
+    if submission_uid:
+        try:
+            submission = ContactSubmission.objects.get(uid=submission_uid)
+        except (ContactSubmission.DoesNotExist, ValueError):
+            pass
+    text = format_payment_success_message(payment_id, amount, currency, submission)
+    try:
+        send_payment_success_message(text)
+    except Exception as e:
+        logger.warning("YooKassa webhook: payment Telegram send failed: %s", e)
+    return HttpResponse(status=200)
+

@@ -12,7 +12,7 @@ if _env_file.exists():
     except ImportError:
         pass  # python-dotenv not installed
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "0") == "1"
+DEBUG = False
 
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
@@ -98,21 +98,31 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_TRUSTED_ORIGINS = [
-    o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",")
+    o.strip() for o in os.environ.get(
+        "CSRF_TRUSTED_ORIGINS",
+        "http://localhost:8000,http://127.0.0.1:8000,https://levushkin.art,https://www.levushkin.art",
+    ).split(",")
     if o.strip()
 ]
+# Prevent IDOR: never expose internal PKs in URLs; use UUIDs (ContactSubmission.uid already)
+# No raw SQL / RawSQL in codebase — ORM only. Template auto-escaping is on by default.
 
 # Telegram notifications (optional: set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID)
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-# --- Security ---
+# Separate Telegram bot for successful payments (YooKassa webhook)
+TELEGRAM_PAYMENT_BOT_TOKEN = os.environ.get("TELEGRAM_PAYMENT_BOT_TOKEN", "").strip()
+TELEGRAM_PAYMENT_CHAT_ID = os.environ.get("TELEGRAM_PAYMENT_CHAT_ID", "").strip()
+
+# --- Security (Django layer) ---
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
-# HTTPS / HSTS (enable behind TLS-terminating proxy)
+# HTTPS / HSTS (set DJANGO_USE_HTTPS=1 behind TLS-terminating proxy)
 _USE_HTTPS = os.environ.get("DJANGO_USE_HTTPS", "0") == "1"
 if _USE_HTTPS:
     SECURE_SSL_REDIRECT = True
@@ -121,15 +131,20 @@ if _USE_HTTPS:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
-# Session
+# Session (broken auth mitigation)
 SESSION_COOKIE_SECURE = _USE_HTTPS
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_SAVE_EACH_REQUEST = True
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-# CSRF
+# CSRF (never disable; middleware is enabled)
 CSRF_COOKIE_SECURE = _USE_HTTPS
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_FAILURE_VIEW = "django.views.csrf.csrf_failure"
 
 # Rate limiting: X-Real-IP when behind nginx
 RATELIMIT_IP_META_KEY = "HTTP_X_REAL_IP"
@@ -141,13 +156,13 @@ CACHES = {
     }
 }
 
-# Logging: security-related events
+# Logging: security events (logins, CSRF, bad requests)
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "security": {
-            "format": "{asctime} {levelname} {message}",
+            "format": "{asctime} {levelname} {name} {message}",
             "style": "{",
         },
     },
@@ -161,5 +176,9 @@ LOGGING = {
         "django.security": {"handlers": ["console"], "level": "WARNING"},
         "django.request": {"handlers": ["console"], "level": "ERROR"},
         "django.security.csrf": {"handlers": ["console"], "level": "WARNING"},
+        "django.auth": {"handlers": ["console"], "level": "WARNING"},
     },
 }
+
+# File uploads: this app has no user file upload; if added, validate extension/size/type
+# Dependencies: run `pip install safety && safety check` and keep Django/packages updated

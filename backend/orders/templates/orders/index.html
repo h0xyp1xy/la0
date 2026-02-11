@@ -55,6 +55,9 @@
       </nav>
     </header>
 
+    <!-- Payment toast -->
+    <div id="payment-toast" class="order-success-toast" role="alert" aria-hidden="true"></div>
+
     <main id="main" class="main">
       <section class="product" aria-label="Картина">
         <figure class="product__figure">
@@ -76,7 +79,7 @@
           </p>
           <p class="product__price" aria-label="Цена">
             <span class="product__price-label">Цена</span>
-            <span class="product__price-value">1 000 000 ₽</span>
+            <span class="product__price-value">700 000 ₽</span>
           </p>
           <button type="button" class="buy-button" id="open-order-form" aria-haspopup="dialog" aria-expanded="false">
             Купить
@@ -112,8 +115,9 @@
             <span class="order-form__error" id="order-email-error" role="alert" aria-live="polite" hidden></span>
           </div>
           <div class="order-form__row">
-            <label class="order-form__label" for="order-telegram">Telegram</label>
-            <input class="order-form__input" id="order-telegram" name="telegram" type="text" autocomplete="username" placeholder="@username" value="@" />
+            <label class="order-form__label" for="order-telegram">Telegram <span class="order-form__required" aria-hidden="true">*</span></label>
+            <input class="order-form__input" id="order-telegram" name="telegram" type="text" autocomplete="username" placeholder="@username" value="@" required aria-describedby="order-telegram-error" aria-invalid="false" />
+            <span class="order-form__error" id="order-telegram-error" role="alert" aria-live="polite" hidden></span>
           </div>
           <div class="order-form__row">
             <label class="order-form__label" for="order-region">Регион / Область <span class="order-form__required" aria-hidden="true">*</span></label>
@@ -382,6 +386,39 @@
         }
 
         const PHONE_ERROR_MSG = "Введите корректный номер телефона (например, +7(916)-000-00-00)";
+        const TELEGRAM_ERROR_MSG = "Укажите имя пользователя в Telegram (например, @username)";
+        const telegramInput = document.getElementById("order-telegram");
+        const telegramError = document.getElementById("order-telegram-error");
+
+        function validateTelegramField() {
+          if (!telegramInput || !telegramError) return;
+          const value = (telegramInput.value || "").trim();
+          const invalid = value === "" || value === "@";
+          if (invalid) {
+            telegramInput.setCustomValidity(TELEGRAM_ERROR_MSG);
+            telegramError.textContent = TELEGRAM_ERROR_MSG;
+            telegramError.hidden = false;
+            telegramInput.setAttribute("aria-invalid", "true");
+          } else {
+            telegramInput.setCustomValidity("");
+            telegramError.textContent = "";
+            telegramError.hidden = true;
+            telegramInput.setAttribute("aria-invalid", "false");
+          }
+        }
+
+        if (telegramInput && telegramError) {
+          telegramInput.addEventListener("blur", validateTelegramField);
+          telegramInput.addEventListener("input", () => {
+            const value = (telegramInput.value || "").trim();
+            if (value !== "" && value !== "@") {
+              telegramInput.setCustomValidity("");
+              telegramError.textContent = "";
+              telegramError.hidden = true;
+              telegramInput.setAttribute("aria-invalid", "false");
+            }
+          });
+        }
 
         function validatePhoneField() {
           if (!phoneInput || !phoneError) return;
@@ -474,6 +511,7 @@
           setRequiredFieldMessages();
           validatePhoneField();
           validateEmailField();
+          validateTelegramField();
           if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -524,7 +562,9 @@
           });
 
           Promise.all([sendRequest, minWait])
-            .then(() => {
+            .then(([data]) => {
+              if (data && data.confirmation_url) { window.location.href = data.confirmation_url; return; }
+              
               showSuccessInForm();
               if (submitBtn) {
                 submitBtn.disabled = false;
@@ -608,6 +648,14 @@
           else if (!v.startsWith("@")) telegramInput.value = "@" + v.replace(/^@+/, "");
           setTimeout(() => telegramInput.setSelectionRange(1, 1), 0);
         });
+      })();
+      (function(){
+        var p = new URLSearchParams(location.search).get("payment"), toast = document.getElementById("payment-toast");
+        if (!toast || !p) return;
+        toast.textContent = p === "success" ? "Оплата прошла успешно. Спасибо за заказ!" : "Оплата не выполнена. Вы можете попробовать снова.";
+        toast.classList.add("order-success-toast--visible"); toast.setAttribute("aria-hidden", "false");
+        history.replaceState({}, "", location.pathname);
+        setTimeout(function(){ toast.classList.remove("order-success-toast--visible"); toast.setAttribute("aria-hidden", "true"); }, 6000);
       })();
     </script>
   </body>
